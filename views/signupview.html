@@ -1,0 +1,37 @@
+<div class="animated fadeIn">
+<h2>Sign Up</h2>
+<p>
+	Signup to start saving notes.
+</p>
+<div class="row">
+	<div class="col-sm-12">
+		<form method="POST" action="auth.php">
+			<label>Email</label>
+			<input name="email" ng-model="email" required class="this" type="email" placeholder="johndoe@gmail.com" />
+			<div class="row">
+				<div class="col-sm-6">
+					<label>First Name</label>
+					<input ng-model="firstName" name="firstname" required class="this" type="text" placeholder="John" />
+				</div>
+				<div class="col-sm-6">
+					<label>Last Name</label>
+					<input ng-model="lastName" name="lastname" required class="this" type="text" placeholder="Doe" />
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-6">
+					<label>Password</label>
+					<input name="password" ng-model="password" required class="this" type="password" placeholder="Enter Password" />
+				</div>
+				<div class="col-sm-6">
+					<label>Confirm Password</label>
+					<input name="confirmPassword" ng-model="confirmPassword" required class="this" type="password" placeholder="Confirm Password" />
+				</div>
+			<span class="error pad" ng-show="password !== confirmPassword">Password mismatch</span>
+			</div>
+			<input ng-disabled="!email || password !== confirmPassword || !firstName || !lastName || !password || !confirmPassword"  class="action" value="Sign Up" type="submit" />
+			<input type="hidden" name="doing" value="signup" />
+		</form>
+	</div>
+</div>
+</div>

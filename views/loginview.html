@@ -1,0 +1,18 @@
+<div class="animated fadeIn">
+<h2>Log In</h2>
+<p>
+	Login In to view your notes.
+</p>
+<div class="row">
+	<div class="col-sm-12">
+		<form method="POST" action="auth.php">
+			<label>Email</label>
+			<input name="email" ng-model="email" required class="this" type="email" placeholder="johndoe@gmail.com" />
+			<label>Password</label>
+			<input name="password" ng-model="password" required class="this" type="password" placeholder="Enter Password" />
+			<input ng-disabled="!email || !password" class="action" value="Log In" type="submit" />
+			<input type="hidden" name="doing" value="login" />
+		</form>
+	</div>
+</div>
+</div>
