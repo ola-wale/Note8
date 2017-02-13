@@ -1,14 +1,14 @@
 <div class="animated fadeIn notes-view m15">
 	<note-item ng-class="{'selected':(selectedNotesArr.indexOf(n.id) > -1)}" style="background-color:{{n.color}}" id="note-{{n.id}}" ng-init="$last && reEnforceNotes()" data-note-id="{{n.id}}" ng-repeat="n in notes">
 		<ul id="palette-chooser-{{n.id}}" class="color-palette">
-			<li ng-click="handleNoteColorChange(n.id,c,$event)" data-palette-color={{c}} ng-repeat="c in allowedNoteColors" style="background-color:{{c}}"></li>
+			<li ng-click="handleNoteColorChange(n.id,c,$event)" data-palette-color={{c}} ng-class="{'active-color':c==n.color}" ng-repeat="c in allowedNoteColors" style="background-color:{{c}}"></li>
 		</ul>
 		<a href="notes/view/{{n.id}}" class="no-interact"></a>
 		<h6 class="ttl"><b>{{n.title}}</b></h6>
 		<content class="notranslate" ng-bind-html="n.content | safe"></content>
 		<div class="hover-component">
 			<ul class="clearfix">
-				<li ng-click="selectNote(n.id)" id="selectNote-{{n.id}}" class="action select"><span class="ti-check selectNote"></span></li>
+				<li ng-click="selectNote(n.id)"  id="selectNote-{{n.id}}" class="action select"><span class="ti-check selectNote"></span></li>
 				<li class="mdl-tooltip" data-mdl-for="selectNote-{{n.id}}">Select</li>
 				<li ng-show="n.folder != 'trash'" ng-click="trashNote(n.id)" id="trashNote{{n.id}}" class="ti-trash action"></li>
 				<li ng-show="n.folder != 'trash'" class="mdl-tooltip" data-mdl-for="trashNote{{n.id}}">Move to Trash</li>

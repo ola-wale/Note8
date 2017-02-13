@@ -1,0 +1,19 @@
+{
+  "name": "note8",
+  "version": "1.0.0",
+  "description": "A Self Hosted Google Keep Alternative",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "notes",
+    "keep",
+    "angular"
+  ],
+  "author": "Malik Morenigbade (malikmoreni@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "gulp": "^3.9.1"
+  }
+}

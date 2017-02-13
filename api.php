@@ -220,14 +220,10 @@ function getUser(){
 	$uid = $db->escape(strip_tags(Note8::user()->id));
 	echo json_encode($db->get_row("
 		SELECT users.id,firstname,lastname,email,level,image,count(notes.owner) AS notecount  FROM users
-		INNER JOIN notes ON (notes.owner = $uid AND (notes.folder IS NULL OR notes.folder = ''))
+		INNER JOIN notes ON (notes.owner = $uid AND (notes.folder IS NULL OR notes.folder = '' OR notes.folder = 'trash'))
 		WHERE users.id=$uid
 		GROUP BY users.id
  "));
- echo "		SELECT users.id,firstname,lastname,email,level,image,count(notes.owner) AS notecount  FROM users
- 		INNER JOIN notes ON (notes.owner = $uid AND (notes.folder IS NULL OR notes.folder = ''))
- 		WHERE users.id=$uid
- 		GROUP BY users.id";
 }
 
 function viewNote(){
@@ -275,6 +271,7 @@ function saveSettings(){
 	}
 	//if the oldpassword index exists, then they want their password changed.
 	if(isset($user['newpassword']) && $user['newpassword'] != ''){
+
 		$oldpassword = $db->escape(strip_tags($user['oldpassword']));
 		$correct_password_hash =  $db->get_var("SELECT password FROM users WHERE id = $owner");
 		//if the old password they entered is right then proceed
@@ -318,12 +315,9 @@ function saveSettings(){
 
 function base64_to_jpeg($base64_string, $output_file) {
     $ifp = fopen($output_file, "wb");
-
     $data = explode(',', $base64_string);
-
     fwrite($ifp, base64_decode($data[1]));
     fclose($ifp);
-
     return $output_file;
 }
 

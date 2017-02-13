@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteBase /note8/
+RewriteRule ^(.*)$ notes.php [QSA,L]

@@ -3,51 +3,50 @@ $(document).ready(function() {
 		$('.side-col ul.side-menu li:not(.view-indicator)').removeClass('active');
 		var _offset = $(this).closest('li').offset().top;
 		$(this).closest('li').addClass('active');
-		var $this = $(this).closest('li');
-		$('.side-col .view-indicator').css('transform', 'translateY(' + _offset + 'px)')
-			.css('height', $this.css('height'));
 	});
 });
 
-var app = angular.module("note8", ['ngRoute', 'angular-loading-bar', 'ngAnimate', 'ngTagsInput', 'ngSanitize','ui.tinymce','ngMessages']);
+var app = angular.module("note8", ['ngRoute', 'angular-loading-bar', 'ngAnimate', 'ngTagsInput', 'ngSanitize', 'ui.tinymce', 'ngMessages']);
 
 app.filter('safe', function($sce) {
 	return $sce.trustAsHtml;
 });
-app.directive('fileread', ['$parse', function ($parse) {
+app.directive('fileread', ['$parse', function($parse) {
 	return {
-			scope: {
-					fileread: "="
-			},
-			link: function (scope, element, attributes) {
-					element.bind("change", function (changeEvent) {
-							var reader = new FileReader();
-							reader.onload = function (loadEvent) {
-									scope.$apply(function () {
-											scope.fileread = loadEvent.target.result;
-									});
-							}
-							reader.readAsDataURL(changeEvent.target.files[0]);
+		scope: {
+			fileread: "="
+		},
+		link: function(scope, element, attributes) {
+			element.bind("change", function(changeEvent) {
+				var reader = new FileReader();
+				reader.onload = function(loadEvent) {
+					scope.$apply(function() {
+						scope.fileread = loadEvent.target.result;
 					});
-			}
+				}
+				reader.readAsDataURL(changeEvent.target.files[0]);
+			});
+		}
 	}
 }]);
-app.run(function($rootScope,$parse,$location) {
-$('body').on('click', '.dark-sheet', function(event) {
-	$rootScope.slide = false;
-	$rootScope.$apply();
-});
+app.run(function($rootScope, $parse, $location) {
+	$('body').on('click', '.dark-sheet', function(event) {
+		$rootScope.slide = false;
+		$rootScope.$apply();
+	});
 	//run the following after every ajax complete
 	$rootScope.$on('update', function() {
 		//update user info - name, display image and stuff
-  	$rootScope.getUser();
+		$rootScope.getUser();
 		//update the tags by the sidebar
-		$rootScope.get('tags','userTags');
+		$rootScope.get('tags', 'userTags');
 		//update the colors
-		$rootScope.get('colors','userColors');
+		$rootScope.get('colors', 'userColors');
 	});
-
-	$rootScope.getImages = function(){
+	/**
+	 * get the user's uploaded Images
+	 */
+	$rootScope.getImages = function() {
 		$.ajax({
 			type: 'POST',
 			url: 'api.php',
@@ -61,16 +60,19 @@ $('body').on('click', '.dark-sheet', function(event) {
 			}
 		});
 	}
-
-	$rootScope.getUser = function(){
+	/**
+	 * get the user's data
+	 */
+	$rootScope.getUser = function() {
 		$rootScope.user = {};
-		$rootScope.user.image = 'https://images.pexels.com/photos/27411/pexels-photo-27411.jpg?w=1260&h=750&auto=compress&cs=tinysrgb';
+		$rootScope.user.image = '';
 		$.ajax({
 			type: 'POST',
 			url: 'api.php',
-			data: {doing:'getUser'},
+			data: {
+				doing: 'getUser'
+			},
 			success: function(data) {
-								console.log(data);
 				$rootScope.user = JSON.parse(data);
 			}
 		});
@@ -78,89 +80,148 @@ $('body').on('click', '.dark-sheet', function(event) {
 	$rootScope.getUser();
 
 	//rearrange the grid elements
-	$rootScope.reLayout = function(){
-	// var options = { "transitionDuration" : 0 , "itemSelector" : "note-item","gutter" : 25,"percentPosition" : true}
-	// $rootScope.grid = $('.notes-view').masonry(options);
-	// console.log($rootScope.grid)
-	// $rootScope.grid.imagesLoaded().progress( function() {
-	// 	$rootScope.grid.masonry('layout');
-	// });
-}
-	$rootScope.get = function(get,assign){
+	$rootScope.reLayout = function() {
+		var options = {
+			"transitionDuration": 0,
+			"itemSelector": "note-item",
+			"gutter": 25,
+			"percentPosition": true
+		}
+		$rootScope.grid = $('.notes-view').masonry(options);
+		$rootScope.grid.imagesLoaded().progress(function() {
+			$rootScope.grid.masonry('layout');
+		});
+	}
+
+	/**
+	 * get a value from the DB
+	 * @param  {string} get    value to get
+	 * @param  {string} assign scope variable to assign to
+	 * @return {Boolean} toReturn Placeholder
+	 */
+	$rootScope.get = function(get, assign) {
 		var toReturn;
 		var model = $parse(assign);
 		$.ajax({
 			type: 'POST',
 			url: 'api.php',
-			data: {doing:'get',get:get},
+			data: {
+				doing: 'get',
+				get: get
+			},
 			success: function(data) {
-				model.assign($rootScope,JSON.parse(data));
+				model.assign($rootScope, JSON.parse(data));
 			}
 		});
 		return toReturn;
 	}
-
-	$rootScope.get('tags','userTags');
-	$rootScope.get('colors','userColors');
+	/**
+	 * get tags and assign them to the scope variable userTags
+	 */
+	$rootScope.get('tags', 'userTags');
+	/**
+	 * Get the user's note colors and assign them to the scope variable userColors
+	 */
+	$rootScope.get('colors', 'userColors');
+	/**
+	 * Run after changing routes successfully
+	 */
 	$rootScope.$on('$routeChangeSuccess', function(next, current) {
+		/**
+		 * Assign an attribute to the body with the current route name
+		 */
 		$('body').attr('data-view', current.$$route.Name);
+		/**
+		 * set currentView scope variable to the current route name
+		 * @type {string}
+		 */
 		$rootScope.currentView = current.$$route.Name;
+		/**
+		 * empty the array of selected notes
+		 * @type {Array}
+		 */
 		$rootScope.initSelectedNotes = [];
+		/**
+		 * Reset the selected notes count
+		 * @type {Number}
+		 */
 		$rootScope.selectedNotesArr = 0;
+		/**
+		 * Reset the selected notes double count
+		 * @type {Number}
+		 */
 		$rootScope.selectedNotes = 0;
-		$rootScope.notes = []
-		$rootScope.get('tags','userTags');
-		if(current.$$route.Title){
+		/**
+		 * 'Clean' our notes
+		 * @type {Array}
+		 */
+		$rootScope.notes = [];
+		/**
+		 * Get the user's note colors and assign them to the scope variable userColors
+		 */
+		$rootScope.get('tags', 'userTags');
+		/**
+		 * If the current route has a title param set it to the document name.
+		 */
+		if (current.$$route.Title) {
 			document.title = current.$$route.Title;
 		}
-		setTimeout(function(){
-			var $this = $('.side-col span.v:contains('+current.$$route.Name+')').find('a');
-			if(typeof $this.closest('li').offset() == 'undefined'){
-				return;
-			}
-			$('.side-col ul.side-menu li:not(.view-indicator)').removeClass('active');
-			var _offset = $this.closest('li').offset().top;
-			$this.closest('li').addClass('active');
-			var $this = $this.closest('li');
-			$('.side-col .view-indicator').css('transform', 'translateY(' + _offset + 'px)').css('height', $this.css('height'));
-		},1000);
 	});
-	$rootScope.url = 'http://localhost/';
-
+	/**
+	 * extend tinymce with an extra button
+	 * @type {String}
+	 */
 	tinymce.PluginManager.add('example', function(editor, url) {
 		// Add a button that opens a window
-	editor.addButton('example', {
-		title: 'Image',
-		icon: 'mce-ico mce-i-image',
-		onclick: function() {
-			// Open window
-			$rootScope.showImageModal = true;
-			$rootScope.modalCloseClass = '';
-			$rootScope.$apply();
-			$rootScope.$digest();
-		}
+		editor.addButton('example', {
+			title: 'Image',
+			icon: 'mce-ico mce-i-image',
+			onclick: function() {
+				// Open window
+				/**
+				 * Show the Image modal
+				 * @type {Boolean}
+				 */
+				$rootScope.showImageModal = true;
+				/**
+				 * empty the modal class var
+				 * @type {String}
+				 */
+				$rootScope.modalCloseClass = '';
+				/**
+				 * Update the rootScope -- Angular2 >:(
+				 */
+				$rootScope.$apply();
+				$rootScope.$digest();
+			}
+		});
 	});
-});
 
-$rootScope.insertImages = function(selectedImagesArr){
-	for(var x =0; x < selectedImagesArr.length; x++){
-	for(var i = 0; i < $rootScope.images.length; i++){
-		if($rootScope.images[i].id == selectedImagesArr[x]){
-			var img = '<img class="image-'+$rootScope.images[i].file+'" src="'+$rootScope.base+$rootScope.images[i].file+'" />'
-			tinymce.activeEditor.execCommand('mceInsertContent', false, img);
+	/**
+	 * Insert Images into the tinymce editor
+	 * @param  {Array} selectedImagesArr an array of selected images
+	 */
+	$rootScope.insertImages = function(selectedImagesArr) {
+		for (var x = 0; x < selectedImagesArr.length; x++) {
+			for (var i = 0; i < $rootScope.images.length; i++) {
+				if ($rootScope.images[i].id == selectedImagesArr[x]) {
+					var img = '<img class="image-' + $rootScope.images[i].file + '" src="' + $rootScope.base + $rootScope.images[i].file + '" />'
+					tinymce.activeEditor.execCommand('mceInsertContent', false, img);
+				}
+			}
 		}
+		//close the image modal
+		$rootScope.closeImagesModal();
 	}
+	/**
+	 * Close the images modal
+	 */
+	$rootScope.closeImagesModal = function() {
+		$rootScope.showImageModal = false;
+		$rootScope.initSelectedImages = [];
+		$rootScope.selectedImages = 0;
+		$rootScope.selectedImagesArr = [];
 	}
-	//close the image modal
-	$rootScope.closeImagesModal();
-}
-
-$rootScope.closeImagesModal = function(){
-	$rootScope.showImageModal = false;
-	$rootScope.initSelectedImages = [];
-	$rootScope.selectedImages = 0;
-	$rootScope.selectedImagesArr = [];
-}
 
 	//an array of the allowed palette note colors
 	$rootScope.allowedNoteColors = ['#fff93f', '#ff3f3f', '#3fff71', '#a3ff3f', '#ffffff'];
@@ -176,14 +237,15 @@ $rootScope.closeImagesModal = function(){
 	$rootScope.nToggleClass = function(elem, _class) {
 		$(elem).toggleClass(_class);
 	}
-
 	/**
-		trashNote
-		Do an ajax request to trash a note then update the dom by removing and fading out the note element
-		@param int noteId The ID of the Note to trash.
-	**/
-	$rootScope.trashNote = function(thisNoteId,move=false,showModal=false,deleteCompletely=false) {
-		if(showModal){
+	 * Do an ajax request to trash a note then update the dom by removing and fading out the note element
+	 * @param  {Number} thisNoteId               the id of the note to trash
+	 * @param  {Boolean} [move=false]             move the note to trash if it isn't in the trash already
+	 * @param  {Boolean} [showModal=false]        show the confirm delete image modal
+	 * @param  {Boolean} [deleteCompletely=false] to delete completely ???
+	 */
+	$rootScope.trashNote = function(thisNoteId, move = false, showModal = false, deleteCompletely = false) {
+		if (showModal) {
 			$rootScope.deleteIntent = true;
 			$rootScope.todel = thisNoteId;
 			return;
@@ -198,30 +260,30 @@ $rootScope.closeImagesModal = function(){
 			url: 'api.php',
 			data: {
 				doing: 'trashNote',
-				notes:thisNoteId,
-				deleteCompletely:deleteCompletely,
+				notes: thisNoteId,
+				deleteCompletely: deleteCompletely,
 			},
 			success: function(data) {
-				if(data == 1){
-					if(!deleteCompletely){
+				if (data == 1) {
+					if (!deleteCompletely) {
 						notify('success', 'Notes moved to trash');
 					} else {
 						notify('success', 'Note(s) deleted');
 						$rootScope.deleteIntent = false;
 						$rootScope.$apply(function() {
-						$location.path( "/trash" );
-					});
+							$location.path("/trash");
+						});
 					}
 
-					if(move){
+					if (move) {
 						$rootScope.$apply(function() {
-						$location.path( "/notes" );
-					});
+							$location.path("/notes");
+						});
 					}
 					thisNoteId.forEach(function(i) {
 						counter++;
-						$rootScope.grid.masonry( 'remove', $('#note-' + i) )
-						if(counter == thisNoteId.length){
+						$rootScope.grid.masonry('remove', $('#note-' + i))
+						if (counter == thisNoteId.length) {
 							$rootScope.reLayout()
 						}
 					});
@@ -237,9 +299,12 @@ $rootScope.closeImagesModal = function(){
 		});
 
 	}
-
-
-
+	/**
+	 * Change note color
+	 * @param  {number} id     the id of the note
+	 * @param  {String} color  the color to set
+	 * @param  {String} $event callback
+	 */
 	$rootScope.handleNoteColorChange = function(id, color, $event) {
 		var thisNoteId = id;
 		if (typeof thisNoteId === 'number' || typeof thisNoteId === 'string') {
@@ -258,11 +323,11 @@ $rootScope.closeImagesModal = function(){
 			url: 'api.php',
 			data: {
 				doing: 'changeNoteColor',
-				notes:thisNoteId,
-				color:color
+				notes: thisNoteId,
+				color: color
 			},
 			success: function(data) {
-				if(data == 1){
+				if (data == 1) {
 					notify('success', 'Note Color Changed');
 				} else {
 					notify('error', 'An error has occurred');
@@ -270,15 +335,17 @@ $rootScope.closeImagesModal = function(){
 			}
 		});
 	}
-
-	//>:( delete images
-	$rootScope.deleteImages = function(images){
+	/**
+	 * Delete images
+	 * @param  {array} images an array of image ids to delete
+	 */
+	$rootScope.deleteImages = function(images) {
 		$.ajax({
 			type: 'POST',
 			url: 'api.php',
 			data: {
 				doing: 'deleteImages',
-				images:images,
+				images: images,
 			},
 			success: function(data) {
 				$('body').prepend(data);
@@ -287,49 +354,53 @@ $rootScope.closeImagesModal = function(){
 		});
 	}
 	/**
-		duplicate
-		Do an ajax request to duplicate a note then update the DOM with the new note element
-		@param int noteId The ID of the Note to duplicateh.
-	**/
+	 * Do an ajax request to duplicate a note then update the DOM with the new note element
+	 * @param  {Boolean} thisNoteId id of the note to duplicate
+	 */
 	$rootScope.duplicate = function(thisNoteId) {
-			if (typeof thisNoteId === 'number' || typeof thisNoteId === 'string') {
-				thisNoteId = [thisNoteId];
-			}
-			var counter = 0;
-			$.ajax({
-				type: 'POST',
-				url: 'api.php',
-				data: {
-					doing: 'duplicateNote',
-					notes:thisNoteId,
-				},
-				success: function(data) {
-					if(data){
-						var toParse = JSON.parse(data);
+		if (typeof thisNoteId === 'number' || typeof thisNoteId === 'string') {
+			thisNoteId = [thisNoteId];
+		}
+		var counter = 0;
+		$.ajax({
+			type: 'POST',
+			url: 'api.php',
+			data: {
+				doing: 'duplicateNote',
+				notes: thisNoteId,
+			},
+			success: function(data) {
+				if (data) {
+					var toParse = JSON.parse(data);
 
-						notify('success', 'Note(s) Duplicated');
-							$rootScope.notes.unshift(toParse);
-							$rootScope.$apply();
-							$rootScope.grid.masonry('destroy')
-						setTimeout(function(){
+					notify('success', 'Note(s) Duplicated');
+					$rootScope.notes.unshift(toParse);
+					$rootScope.$apply();
+					$rootScope.grid.masonry('destroy')
+					setTimeout(function() {
 						$rootScope.reLayout();
-					},500);
+					}, 500);
 					$rootScope.initSelectedNotes = [];
 					$rootScope.selectedNotesArr = 0;
 					$rootScope.selectedNotes = 0;
 					$rootScope.$apply();
-					} else {
-						notify('error', 'An error has occurred');
-					}
-					$rootScope.$broadcast('update');
+				} else {
+					notify('error', 'An error has occurred');
 				}
-			});
-		}
-		/**
-			duplicate
-			Do an ajax request to duplicate a note then update the DOM with the new note element
-			@param int noteId The ID of the Note to duplicateh.
-		**/
+				$rootScope.$broadcast('update');
+			}
+		});
+	}
+	/**
+		duplicate
+		Do an ajax request to duplicate a note then update the DOM with the new note element
+		@param int noteId The ID of the Note to duplicateh.
+	**/
+	/**
+	 * Select notes
+	 * @param  {number} noteId Id of note to add to selection
+	 * @return {[type]}        [description]
+	 */
 	$rootScope.selectNote = function(noteId) {
 		if ($.inArray(noteId, $rootScope.initSelectedNotes) > -1) {
 			var index = $rootScope.initSelectedNotes.indexOf(noteId);
@@ -339,9 +410,12 @@ $rootScope.closeImagesModal = function(){
 		}
 		$rootScope.selectedNotesArr = $rootScope.initSelectedNotes;
 		$rootScope.selectedNotes = $rootScope.initSelectedNotes.length;
-		//$('#note-' + noteId).toggleClass('selected');
 	}
-
+	/**
+	 * Select images
+	 * @param  {number} imageId id of image to add to selection
+	 * @return {[type]}         [description]
+	 */
 	$rootScope.selectImages = function(imageId) {
 		if ($.inArray(imageId, $rootScope.initSelectedImages) > -1) {
 			var index = $rootScope.initSelectedImages.indexOf(imageId);
@@ -352,16 +426,19 @@ $rootScope.closeImagesModal = function(){
 		$rootScope.selectedImagesArr = $rootScope.initSelectedImages;
 		$rootScope.selectedImages = $rootScope.initSelectedImages.length;
 	}
-
-	$rootScope.reEnforceNotes = function() {
-
-	}
-
-	$rootScope.trigger = function(selector,e){
+	/**
+	 * Trigger event on an element
+	 * @param  {string} selector element selector
+	 * @param  {event} e        event to trigger
+	 */
+	$rootScope.trigger = function(selector, e) {
 		$(selector).trigger(e);
 	}
-
-	$rootScope.restore = function(thisNoteId){
+	/**
+	 * Restore a notes from the trash
+	 * @param  {Number} thisNoteId id of the note to restore
+	 */
+	$rootScope.restore = function(thisNoteId) {
 		if (typeof thisNoteId === 'number' || typeof thisNoteId === 'string') {
 			thisNoteId = [thisNoteId];
 		}
@@ -370,15 +447,15 @@ $rootScope.closeImagesModal = function(){
 			url: 'api.php',
 			data: {
 				doing: 'restoreNote',
-				notes:thisNoteId
+				notes: thisNoteId
 			},
 			success: function(data) {
 				var counter = 0
 				notify('success', 'Note(s) restored.');
 				thisNoteId.forEach(function(i) {
 					counter++;
-					$rootScope.grid.masonry( 'remove', $('#note-' + i) )
-					if(counter == thisNoteId.length){
+					$rootScope.grid.masonry('remove', $('#note-' + i))
+					if (counter == thisNoteId.length) {
 						$rootScope.reLayout();
 					}
 				});
@@ -386,29 +463,31 @@ $rootScope.closeImagesModal = function(){
 			}
 		});
 	}
-
 })
+/**
+ * App configuration
+ */
 app.config(function($routeProvider, $locationProvider) {
 	$routeProvider
 		.when('/notes/new-note', {
 			Name: 'newnote',
-			Title:'Create a new note',
+			Title: 'Create a new note',
 			templateUrl: "views/new-note.php"
 		})
 		.when('/notes/settings', {
 			Name: 'Settings',
-			Title:'Settings',
+			Title: 'Settings',
 			templateUrl: "views/settings.php"
 		})
 		.when('/notes/search', {
 			Name: 'search',
-			Title:'Search Notes',
+			Title: 'Search Notes',
 			templateUrl: "views/search.php",
 			controller: 'searchNotesController'
 		})
 		.when('/notes/search/:q', {
 			Name: 'search',
-			Title:'Search Notes',
+			Title: 'Search Notes',
 			templateUrl: "views/notesview.php",
 			controller: 'searchNotesController'
 		})
@@ -419,28 +498,32 @@ app.config(function($routeProvider, $locationProvider) {
 		})
 		.when('/notes/trash', {
 			Name: 'Trash',
-			Title:'Trash',
+			Title: 'Trash',
 			templateUrl: "views/notesview.php",
 			controller: 'notesTrashController'
 		})
 		.when('/notes', {
 			Name: 'noteview',
-			Title:'Notes',
+			Title: 'Notes',
 			templateUrl: "views/notesview.php",
-			controller:'notesController'
+			controller: 'notesController'
 		})
 		.when('/notes/tag/:tag', {
 			Name: 'noteview',
 			templateUrl: "views/notesview.php",
-			controller:'notesbyTagController'
+			controller: 'notesbyTagController'
 		})
 		.when('/notes/color/:color', {
 			Name: 'color',
 			templateUrl: "views/notesview.php",
-			controller:'notesbyColorController'
+			controller: 'notesbyColorController'
 		})
 	$locationProvider.html5Mode(true);
 });
+/**
+ * Notes Controller
+ * @type {String}
+ */
 app.controller('notesController', function($scope, $rootScope) {
 	$.ajax({
 		type: 'POST',
@@ -456,6 +539,9 @@ app.controller('notesController', function($scope, $rootScope) {
 		}
 	});
 })
+/**
+ * Trash view controller
+ */
 app.controller('notesTrashController', function($scope, $rootScope) {
 	//get notes from trash via ajax
 	$.ajax({
@@ -463,7 +549,7 @@ app.controller('notesTrashController', function($scope, $rootScope) {
 		url: 'api.php',
 		data: {
 			doing: 'getNotes',
-			trash:''
+			trash: ''
 		},
 		success: function(data) {
 			$rootScope.notes = JSON.parse(data);
@@ -473,18 +559,22 @@ app.controller('notesTrashController', function($scope, $rootScope) {
 		}
 	});
 })
+/**
+ * New Note View Controller
+ */
 app.controller('newNoteController', function($scope, $rootScope) {
 	$scope.newNoteColor = '#fff';
 	/**
-		setNewNoteColor
-		sets the background color of the new note
-		@param color string - The Color to set.
-	**/
+	 * sets the background color of the new note
+	 * @param {String} color the new color to set
+	 */
 	$scope.setNewNoteColor = function(color) {
 		$(tinymce.activeEditor.getBody()).css('background-color', color);
 		$scope.newNoteColor = color;
 	}
-
+	/**
+	 * Save a note
+	 */
 	$scope.saveNote = function() {
 		var tags = {};
 		for (var i in $scope.tags) {
@@ -494,15 +584,15 @@ app.controller('newNoteController', function($scope, $rootScope) {
 			New Note Data
 		**/
 		var data = {
-				doing: 'saveNote',
-				contents: tinyMCE.activeEditor.getContent(),
-				title:$('.n-title').val(),
-				tags: tags,
-				color: $scope.newNoteColor
-			}
-			/**
-			Ajax call to set a new note.
-			**/
+			doing: 'saveNote',
+			contents: tinyMCE.activeEditor.getContent(),
+			title: $('.n-title').val(),
+			tags: tags,
+			color: $scope.newNoteColor
+		}
+		/**
+		Ajax call to set a new note.
+		**/
 		$.ajax({
 			type: 'POST',
 			url: 'api.php',
@@ -512,6 +602,10 @@ app.controller('newNoteController', function($scope, $rootScope) {
 			}
 		});
 	}
+	/**
+	 * Update a note
+	 * @param  {Number} id id of the note to update
+	 */
 	$scope.updateNote = function(id) {
 		var tags = {};
 		for (var i in $scope.currentNote.tags) {
@@ -521,22 +615,22 @@ app.controller('newNoteController', function($scope, $rootScope) {
 			New Note Data
 		**/
 		var data = {
-				doing: 'updateNote',
-				contents: tinyMCE.activeEditor.getContent(),
-				title:$('.n-title').val(),
-				tags: tags,
-				color: $scope.currentNote.color,
-				id:id
-			}
-			/**
-			Ajax call to set a new note.
-			**/
+			doing: 'updateNote',
+			contents: tinyMCE.activeEditor.getContent(),
+			title: $('.n-title').val(),
+			tags: tags,
+			color: $scope.currentNote.color,
+			id: id
+		}
+		/**
+		Ajax call to set a new note.
+		**/
 		$.ajax({
 			type: 'POST',
 			url: 'api.php',
 			data: data,
 			success: function(data) {
-				if(data == 1){
+				if (data == 1) {
 					notify('success', 'Note Updated.');
 				} else {
 					notify('error', 'Error occurred');
@@ -545,8 +639,15 @@ app.controller('newNoteController', function($scope, $rootScope) {
 			}
 		});
 	}
+	/**
+	 * set the document title
+	 * @type {String}
+	 */
 	document.title = 'New Note | Note8';
-
+	/**
+	 * Upload an Image
+	 * @param  {Array} files form data
+	 */
 	$scope.uploadImage = function(files) {
 		//get the file extension after the last full stop in the file bame
 		var ext = files[0].name.match(/\.(.+)$/)[1];
@@ -585,14 +686,15 @@ app.controller('newNoteController', function($scope, $rootScope) {
 			notify('error', 'Please upload a valid Image file.');
 		}
 	}
-
-
 });
+/**
+ * Note by tags Controller
+ */
 app.controller('notesbyTagController', function($scope, $rootScope, $routeParams) {
 	var currentTag = $routeParams.tag;
 	var data = {
 		doing: 'getNotes',
-		tag:currentTag
+		tag: currentTag
 	}
 	document.title = currentTag;
 	$.ajax({
@@ -607,11 +709,14 @@ app.controller('notesbyTagController', function($scope, $rootScope, $routeParams
 		}
 	});
 });
+/**
+ * Notes by colors controller
+ */
 app.controller('notesbyColorController', function($scope, $rootScope, $routeParams) {
 	var currentColor = $routeParams.color;
 	var data = {
 		doing: 'getNotes',
-		color:currentColor
+		color: currentColor
 	}
 	$.ajax({
 		type: 'POST',
@@ -625,20 +730,33 @@ app.controller('notesbyColorController', function($scope, $rootScope, $routePara
 		}
 	});
 });
+/**
+ * insertImageController
+ */
 app.controller('insertImageController', function($scope, $rootScope) {
 	$rootScope.getImages();
 });
-app.controller('sideNotesController', function($scope, $rootScope) {
-
-});
-app.controller('searchNotesController', function($scope, $rootScope,$location,$routeParams) {
-	$rootScope.searchNotes = function(q){
-		if(typeof q === 'undefined'){return;}
+/**
+ * Placeholder
+ */
+app.controller('sideNotesController', function($scope, $rootScope) {});
+/**
+ * Note search view controller
+ */
+app.controller('searchNotesController', function($scope, $rootScope, $location, $routeParams) {
+	/**
+	 * Take a query and use it to look for notes
+	 * @param  {String} q Search Query
+	 */
+	$rootScope.searchNotes = function(q) {
+		if (typeof q === 'undefined') {
+			return;
+		}
 		var data = {
 			doing: 'getNotes',
-			query:q
+			query: q
 		}
-		$location.path('/notes/search/'+ q);
+		$location.path('/notes/search/' + q);
 		$.ajax({
 			type: 'POST',
 			url: 'api.php',
@@ -653,67 +771,85 @@ app.controller('searchNotesController', function($scope, $rootScope,$location,$r
 	}
 	$rootScope.searchNotes($routeParams.q);
 });
-
-app.controller('settingsController',function($scope,$rootScope){
-	$scope.f = function(){
-		$scope.settingsForm.oldpassword.$setValidity("correct",false);
+/**
+ * Settings controller
+ * @type {[type]}
+ */
+app.controller('settingsController', function($scope, $rootScope) {
+	$scope.f = function() {
+		$scope.settingsForm.oldpassword.$setValidity("correct", false);
 	}
-	$scope.saveSettings = function(settingsForm){
-		if(settingsForm.$valid){
+	/**
+	 * Save settingsForm
+	 * @param  {FormData} settingsForm settings form data
+	 */
+	$scope.saveSettings = function(settingsForm) {
+		if (settingsForm.$valid) {
 			$.ajax({
 				type: 'POST',
 				url: 'api.php',
-				data:{doing:'saveSettings',user:$scope.user},
+				data: {
+					doing: 'saveSettings',
+					user: $scope.user
+				},
 				success: function(data) {
 					$('head').prepend(data)
 				}
 			});
 		}
 	}
-	$scope.check = function(){
-		if($scope.user.newpassword != $scope.user.confirmnewpassword){
-				$scope.settingsForm.confirmnewpassword.$setValidity("correct",false);
+	/**
+	 * Check passwords if they match
+	 */
+	$scope.check = function() {
+		if ($scope.user.newpassword != $scope.user.confirmnewpassword) {
+			$scope.settingsForm.confirmnewpassword.$setValidity("correct", false);
 		} else {
-			$scope.settingsForm.confirmnewpassword.$setValidity("correct",true);
+			$scope.settingsForm.confirmnewpassword.$setValidity("correct", true);
 		}
 	}
 })
-
-app.controller('noteViewController',function($scope, $rootScope,$location,$routeParams){
+/**
+ * Note view controller
+ */
+app.controller('noteViewController', function($scope, $rootScope, $location, $routeParams) {
 	var mceReady = false
-	$scope.tinymceOptions = 			{
-		setup: function (ed) {
-        ed.on('init', function(args) {
-            mceReady = true;
-        });
-    },
-					content_css : $rootScope.base+'/css/mce.css',
-					menubar: false,
-					statusbar: false,
-					plugins: "image example",
-					paste_data_images: true,
-					toolbar: "example undo redo removeformat bold italic underline link print preview media fullpage alignleft aligncenter alignright alignjustify link bullist numlist outdent indent bullist numlist"
-				}
+	$scope.tinymceOptions = {
+		setup: function(ed) {
+			ed.on('init', function(args) {
+				mceReady = true;
+			});
+		},
+		content_css: $rootScope.base + '/css/mce.css',
+		menubar: false,
+		statusbar: false,
+		plugins: "image example",
+		paste_data_images: true,
+		toolbar: "example undo redo removeformat bold italic underline link print preview media fullpage alignleft aligncenter alignright alignjustify link bullist numlist outdent indent bullist numlist"
+	}
 
 	var noteId = $routeParams.i;
 	$.ajax({
 		type: 'POST',
 		url: 'api.php',
-		data:{doing:'viewNote',id:noteId},
+		data: {
+			doing: 'viewNote',
+			id: noteId
+		},
 		success: function(data) {
 			$scope.currentNote = JSON.parse(data);
-			if($scope.currentNote.title){
+			if ($scope.currentNote.title) {
 				document.title = $scope.currentNote.title;
 			}
 			$scope.currentNote.tags = $scope.currentNote.tags.split("/tagsept/").filter(Boolean);
 			$scope.$apply();
 			$rootScope.$broadcast('update');
-			var interval = setInterval(function(){
-				if(tinymce.activeEditor){
+			var interval = setInterval(function() {
+				if (tinymce.activeEditor) {
 					$(tinymce.activeEditor.getBody()).css('background-color', $scope.currentNote.color);
 					clearInterval(interval);
 				}
-			},200);
+			}, 200);
 		}
 	});
 })

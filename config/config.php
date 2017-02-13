@@ -23,4 +23,4 @@ define('DB_NAME','note8');
 /*
 	Site Url
 */
-define('SITE_LINK','http://localhost/note8/');
+define('SITE_LINK','http://dev.superelite.co/note8/');

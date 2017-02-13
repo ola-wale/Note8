@@ -5,6 +5,7 @@ if(!Note8::is_logged_in()){
 }
 $user = Note8::user(false);
 ?>
+<!--This is/was a school project and i'd love to keep it simple, no gulp,concating,minification (for readibility's sake)-->
 <!DOCTYPE html>
 <html>
 	<head>
@@ -34,7 +35,6 @@ $user = Note8::user(false);
 		<link rel="stylesheet" href="css/ng-tags-input.min.css" />
 		<script src="js/angular-mce.js"></script>
 		<script src="js/dash.js"></script>
-		<title>{{ pageTitle }}</title>
 	</head>
 	<body data-ng-init="base = '<?php echo SITE_LINK ?>'" data-ng-app="note8" class="container-fluid main-notes">
 		<div class="container-fluid view">
@@ -81,18 +81,18 @@ $user = Note8::user(false);
 							</div>
 						</header>
 						<div data-select-count="{{selectedNotes}}" class="selected-toolbar margeview">
-							<ul id="tbpalette-chooser" class="color-palette">
-								<li data-ng-click="handleNoteColorChange(selectedNotesArr,c,$event)" data-palette-color={{c}} data-ng-repeat="c in allowedNoteColors" style="background-color:{{c}}"></li>
+							<ul id="tbpalette-chooser" data-ng-class="{'bring':showToolbarPalette}" class="color-palette">
+								<li data-ng-click="handleNoteColorChange(selectedNotesArr,c,$event)" data-palette-color={{c}} data-ng-repeat="c in allowedNoteColors"  style="background-color:{{c}}"></li>
 							</ul>
 							<div class="rel">
-								<i data-ng-click="selectedNotes = 0; selectedNotesArr = []; initSelectedNotes = []" class="ti-close"></i>
+								<i data-ng-click="showToolbarPalette = selectedNotes = 0; selectedNotesArr = []; initSelectedNotes = [];" class="ti-close"></i>
 								<span class="num-selected">{{selectedNotes}} Selected</span>
 								<ul class="actions">
 									<li data-ng-show="currentView != 'Trash'" data-ng-click="trashNote(selectedNotesArr)" id="tbtrashNote" class="ti-trash action"></li>
 									<li data-ng-show="currentView != 'Trash'" class="mdl-tooltip mdl-tooltip--top" data-mdl-for="tbtrashNote">Move to Trash</li>
 									<li data-ng-show="currentView == 'Trash'" data-ng-click="trashNote(selectedNotesArr,true,true,false)" id="dtbtrashNote" class="ti-trash action"></li>
 									<li data-ng-show="currentView == 'Trash'" class="mdl-tooltip mdl-tooltip--top" data-mdl-for="dtbtrashNote">Delete</li>
-									<li data-ng-click="nToggleClass('#tbpalette-chooser','bring')" id="tbpalette" class="ti-palette action"></li>
+									<li data-ng-click="showToolbarPalette = !showToolbarPalette" id="tbpalette" class="ti-palette action"></li>
 									<li class="mdl-tooltip mdl-tooltip--top" data-mdl-for="tbpalette">Change Color</li>
 									<li data-ng-click="duplicate(selectedNotesArr)" id="tbduplicate" class="ti-files action"></li>
 									<li class="mdl-tooltip mdl-tooltip--top" data-mdl-for="tbduplicate">Make Copy</li>
