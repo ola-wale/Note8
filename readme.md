@@ -17,4 +17,4 @@ ngTagsInput<br />
 Masonry<br />
 jQuery<br />
 <br />
-License : MIT???DWYW. Bake It, Fry it, Wear it, Sit on it. Do Whatever You Want.
+License : http://bit.ly/2nrSwdy ???. Do Whatever You Want.
