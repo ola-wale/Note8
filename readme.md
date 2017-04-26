@@ -20,3 +20,4 @@ jQuery<br />
 <b>What's coming: </b>
 <img src="https://i.imgur.com/PmGzpWr.jpg" alt="groups" />
 Groups 
+<i>Moving all xhttp requests to the note8 angular provider.</i>
