@@ -16,5 +16,7 @@ TinyMCE<br />
 ngTagsInput<br />
 Masonry<br />
 jQuery<br />
-<br />
-License : http://bit.ly/2nrSwdy ???. Do Whatever You Want.
+
+<b>What's coming: </b>
+<img src="https://i.imgur.com/PmGzpWr.jpg" alt="groups" />
+Groups 
